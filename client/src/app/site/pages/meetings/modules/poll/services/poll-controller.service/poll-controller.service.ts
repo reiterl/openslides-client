@@ -1,26 +1,26 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
+import { distinctUntilChanged, map, Observable } from 'rxjs';
 import { Fqid, Id } from 'src/app/domain/definitions/key-types';
 import { Identifiable } from 'src/app/domain/interfaces';
 import { Poll } from 'src/app/domain/models/poll/poll';
 import { PollState, PollType } from 'src/app/domain/models/poll/poll-constants';
 import { PollRepositoryService } from 'src/app/gateways/repositories/polls/poll-repository.service';
+import { VoteRepositoryService } from 'src/app/gateways/repositories/polls/vote-repository.service';
 import { VoteDecryptGatewayService } from 'src/app/gateways/vote-decrypt-gateway.service';
 import { BaseMeetingControllerService } from 'src/app/site/pages/meetings/base/base-meeting-controller.service';
 import { MeetingControllerServiceCollectorService } from 'src/app/site/pages/meetings/services/meeting-controller-service-collector.service';
 import { LifecycleService } from 'src/app/site/services/lifecycle.service';
 
 import { ViewPoll } from '../../../../pages/polls';
-import { PollServiceModule } from '../poll-service.module';
 
 function getRandomString(length: number) {
-    return Array<number>
-        .from({ length: length }, () => Math.floor(Math.random() * 62))
+    return Array.from({ length: length }, () => Math.floor(Math.random() * 62))
         .map(num => (num < 10 ? num : String.fromCharCode(num < 36 ? num + 55 : num + 61)))
         .join(``);
 }
 
-@Injectable({ providedIn: PollServiceModule })
+@Injectable({ providedIn: `root` })
 export class PollControllerService extends BaseMeetingControllerService<ViewPoll, Poll> {
     public get tokens(): { [poll_id: number]: { [user_id: number]: string } } {
         return this._tokens;
@@ -33,6 +33,7 @@ export class PollControllerService extends BaseMeetingControllerService<ViewPoll
     constructor(
         controllerServiceCollector: MeetingControllerServiceCollectorService,
         protected override repo: PollRepositoryService,
+        protected voteRepo: VoteRepositoryService,
         private voteCrypto: VoteDecryptGatewayService,
         private lifecycle: LifecycleService
     ) {
@@ -43,6 +44,20 @@ export class PollControllerService extends BaseMeetingControllerService<ViewPoll
             this._tokens = {};
             this.tokensSubject.next(this._tokens);
         });
+
+        this.getViewModelListObservableOfStarted()
+            .pipe(
+                distinctUntilChanged((previous, current) => {
+                    const prevStarted = previous.map(p => p.id);
+                    const currStarted = current.map(p => p.id);
+
+                    return prevStarted.length === currStarted.length && currStarted.equals(prevStarted);
+                }),
+                map(value => value.map(p => p.id))
+            )
+            .subscribe(startedPolls => {
+                this.voteRepo.updateStartedPolls(startedPolls);
+            });
     }
 
     public create(payload: any): Promise<Identifiable> {
@@ -76,6 +91,10 @@ export class PollControllerService extends BaseMeetingControllerService<ViewPoll
             this.tokensSubject.next(this._tokens);
         }
         return this.repo.vote(viewPoll, options, token);
+    }
+
+    public getViewModelListObservableOfStarted(): Observable<ViewPoll[]> {
+        return this.getViewModelListObservable().pipe(map(polls => polls.filter(p => p.isStarted)));
     }
 
     public getViewModelListByContentObject(fqid: Fqid): ViewPoll[] {

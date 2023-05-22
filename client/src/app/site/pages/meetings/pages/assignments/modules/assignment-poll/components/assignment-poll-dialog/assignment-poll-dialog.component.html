@@ -9,18 +9,18 @@
 ></os-assignment-poll-form>
 
 <!-- Analog voting -->
-<ng-container *ngIf="isAnalogPoll && dialogVoteForm">
+<ng-container *ngIf="isAnalogPoll && dialogVoteForm && !reloading">
     <form [formGroup]="dialogVoteForm">
         <!-- Candidates Values -->
         <div formGroupName="options">
             <div *ngFor="let option of options" class="votes-grid">
                 <div class="candidate">
-                    <span *ngIf="option.content_object">{{ option.content_object | toString: 'getFullName' }}</span>
-                    <i *ngIf="!option.content_object">{{ unknownUserLabel | translate }}</i>
+                    <span *ngIf="option.content_object && option.content_object['getFullName']">{{ option.content_object | toString: 'getFullName' }}</span>
+                    <i *ngIf="!option.content_object && !option.poll_candidate_user_ids">{{ unknownUserLabel | translate }}</i>
                 </div>
 
                 <div class="amount">
-                    <div *ngFor="let value of analogVoteFields" [formGroupName]="option.fqid">
+                    <div *ngFor="let value of analogVoteFields" [formGroupName]="calculateOptionKey(option)">
                         <os-check-input
                             [placeholder]="voteValueVerbose[value] | translate"
                             [checkboxValue]="-1"
@@ -36,14 +36,16 @@
 
         <!-- Sum Values -->
         <div *ngFor="let value of sumValues" class="votes-grid">
-            <os-check-input
-                class="amount"
-                [placeholder]="generalValueVerbose[value] | translate"
-                [checkboxValue]="-1"
-                inputType="number"
-                [checkboxLabel]="'majority' | translate"
-                [formControlName]="value"
-            ></os-check-input>
+            <div class="assignment-dialog-input--container">
+                <mat-form-field class="amount">
+                    <input
+                        matInput
+                        type="number"
+                        [formControlName]="value"
+                        [placeholder]="generalValueVerbose[value] | translate"
+                    />
+                </mat-form-field>
+            </div>
         </div>
     </form>
 

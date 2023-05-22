@@ -6,9 +6,9 @@ import { filter, map } from 'rxjs/operators';
 import { Id } from 'src/app/domain/definitions/key-types';
 import { Identifiable } from 'src/app/domain/interfaces';
 import { PollType } from 'src/app/domain/models/poll';
+import { PollContentObject } from 'src/app/domain/models/poll';
 import { infoDialogSettings } from 'src/app/infrastructure/utils/dialog-settings';
 import { Deferred } from 'src/app/infrastructure/utils/promises';
-import { BaseViewModel } from 'src/app/site/base/base-view-model';
 import { BaseMeetingComponent } from 'src/app/site/pages/meetings/base/base-meeting.component';
 import { PollControllerService } from 'src/app/site/pages/meetings/modules/poll/services/poll-controller.service/poll-controller.service';
 import { ViewGroup } from 'src/app/site/pages/meetings/pages/participants';
@@ -26,6 +26,7 @@ import { EntitledUsersTableEntry } from '../definitions';
 import { PollService } from '../services/poll.service';
 import { PollDialogService } from '../services/poll-dialog.service';
 import { VoteControllerService } from '../services/vote-controller.service';
+import { BasePollPdfService } from './base-poll-pdf.service';
 
 export interface BaseVoteData extends Identifiable {
     user?: ViewUser;
@@ -47,7 +48,7 @@ export const VOTE_OPTION_STYLE: any = {
 };
 
 @Directive()
-export abstract class BasePollDetailComponent<V extends BaseViewModel, S extends PollService>
+export abstract class BasePollDetailComponent<V extends PollContentObject, S extends PollService>
     extends BaseMeetingComponent
     implements OnInit, OnDestroy
 {
@@ -140,7 +141,8 @@ export abstract class BasePollDetailComponent<V extends BaseViewModel, S extends
         protected cd: ChangeDetectorRef,
         protected userRepo: ParticipantControllerService,
         private scrollTableManage: ScrollingTableManageService,
-        private dialog: PollDialogService
+        private dialog: PollDialogService,
+        private pollPdfService: BasePollPdfService
     ) {
         super(componentServiceCollector, translate);
 
@@ -187,6 +189,13 @@ export abstract class BasePollDetailComponent<V extends BaseViewModel, S extends
             this._pollId = id;
             this.loadComponentById();
         }
+    }
+
+    public exportPollResults(): void {
+        this.pollPdfService.exportSinglePoll(this.poll, {
+            votesData: this._votesDataSubject.value,
+            entitledUsersData: this._entitledUsersSubject.value
+        });
     }
 
     protected onStateChanged(): void {}

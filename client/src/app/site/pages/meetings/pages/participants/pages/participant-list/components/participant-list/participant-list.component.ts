@@ -191,6 +191,9 @@ export class ParticipantListComponent extends BaseMeetingListViewComponent<ViewU
                 if (!result.group_ids?.length) {
                     result.group_ids = [this.activeMeeting!.default_group_id];
                 }
+                if (result.vote_delegated_to_id === 0) {
+                    result.vote_delegated_to_id = null;
+                }
                 this.repo.update(result, user).resolve();
             }
         });
@@ -276,19 +279,6 @@ export class ParticipantListComponent extends BaseMeetingListViewComponent<ViewU
 
     public async changePhysicalStateOfSelectedUsers(): Promise<void> {
         await this.setStateSelected(`is_physical_person`);
-    }
-
-    /**
-     * Get information about the last time an invitation email was sent to a user
-     *
-     * @param user
-     * @returns a string representation about the last time an email was sent to a user
-     */
-    public getEmailSentTime(user: ViewUser): string {
-        if (!user.isLastEmailSend) {
-            return this.translate.instant(`No email sent`);
-        }
-        return this.repo.getLastSentEmailTimeString(user);
     }
 
     /**

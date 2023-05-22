@@ -106,8 +106,8 @@
             <!-- Email-sent indicator -->
             <mat-icon
                 inline
-                *ngIf="user.isLastEmailSend"
-                matTooltip="{{ 'Email sent' | translate }} ({{ getEmailSentTime(user) }})"
+                *ngIf="user.isLastEmailSent"
+                matTooltip="{{ 'Email sent' | translate }} ({{ user.last_email_sent | localizedDate }})"
             >
                 mail
             </mat-icon>
@@ -242,7 +242,7 @@
             </button>
 
             <button mat-menu-item [disabled]="!selectedRows.length" (click)="changePhysicalStateOfSelectedUsers()">
-                <mat-icon>auto_awesome_mosaic</mat-icon>
+                <mat-icon>sync</mat-icon>
                 <span>{{ 'Set natural person ...' | translate }}</span>
             </button>
 

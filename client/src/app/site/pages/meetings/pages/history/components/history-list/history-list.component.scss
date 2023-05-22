@@ -13,4 +13,13 @@
         padding-left: 5px;
         padding-right: 5px;
     }
+
+    .links-disabled {
+        pointer-events: none;
+    }
+}
+
+.os-not-found-button-content {
+    display: inline-block;
+    vertical-align: middle;
 }

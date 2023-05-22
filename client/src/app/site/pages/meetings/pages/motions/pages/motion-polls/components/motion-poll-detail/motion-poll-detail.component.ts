@@ -19,6 +19,7 @@ import { VoteControllerService } from '../../../../../../modules/poll/services/v
 import { GroupControllerService } from '../../../../../participants/modules/groups/services/group-controller.service';
 import { MotionPollService } from '../../../../modules/motion-poll/services';
 import { MotionPollDialogService } from '../../../../modules/motion-poll/services/motion-poll-dialog.service';
+import { MotionPollPdfService } from '../../../../modules/motion-poll/services/motion-poll-pdf.service';
 
 @Component({
     selector: `os-motion-poll-detail`,
@@ -48,7 +49,8 @@ export class MotionPollDetailComponent extends BasePollDetailComponent<ViewMotio
         participantRepo: ParticipantControllerService,
         private pollDialog: MotionPollDialogService,
         scrollTableManage: ScrollingTableManageService,
-        dialog: PollDialogService
+        dialog: PollDialogService,
+        pollPdfService: MotionPollPdfService
     ) {
         super(
             componentServiceCollector,
@@ -63,7 +65,8 @@ export class MotionPollDetailComponent extends BasePollDetailComponent<ViewMotio
             cd,
             participantRepo,
             scrollTableManage,
-            dialog
+            dialog,
+            pollPdfService
         );
     }
 

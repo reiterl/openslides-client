@@ -9,11 +9,13 @@ import {
     map,
     merge,
     Observable,
+    startWith,
     Subscription
 } from 'rxjs';
 import { NotifyResponse, NotifyService } from 'src/app/gateways/notify.service';
 import { PromptService } from 'src/app/ui/modules/prompt-dialog';
 
+import { ActiveMeetingService } from '../../../services/active-meeting.service';
 import { BroadcastService } from './broadcast.service';
 import { CallRestrictionService } from './call-restriction.service';
 import { ConferenceState, InviteMessage, KickMessage, kickMessage, senderMessage } from './interaction.service';
@@ -80,21 +82,23 @@ export class InteractionReceiveService {
 
     private _kickObservable = this.notifyService.getMessageObservable<kickMessage>(KickMessage);
 
-    constructor(private notifyService: NotifyService) {}
+    constructor(private notifyService: NotifyService, private activeMeetingService: ActiveMeetingService) {}
 
     public startListening(lazyServices: InteractionReceiveSetupServices): void {
         if (!!this._inviteSubscription) {
             return;
         }
         this._lazyServices = lazyServices;
-        this._inviteSubscription = combineLatest([
-            this.showLiveConfObservable,
-            this.streamService.hasLiveStreamUrlObservable,
-            this.streamService.canSeeLiveStreamObservable,
-            this.rtcService.isJoinedObservable,
-            this.rtcService.isJitsiActiveObservable,
-            this.callRestrictionService.canEnterCallObservable
-        ])
+        this._inviteSubscription = combineLatest(
+            [
+                this.showLiveConfObservable,
+                this.streamService.hasLiveStreamUrlObservable,
+                this.streamService.canSeeLiveStreamObservable,
+                this.rtcService.isJoinedObservable,
+                this.rtcService.isJitsiActiveObservable,
+                this.callRestrictionService.canEnterCallObservable
+            ].map(observable => observable.pipe(startWith(false)))
+        )
             .pipe(
                 map(([showConf, hasStreamUrl, canSeeStream, inCall, jitsiActive, canEnterCall]) => {
                     this.isInCall = inCall || false;
@@ -124,7 +128,11 @@ export class InteractionReceiveService {
         merge(
             this.callRestrictionService.hasToEnterCallObservable,
             this.notifyService.getMessageObservable<senderMessage>(InviteMessage).pipe(
-                filter(message => message.sendByThisUser === false),
+                filter(
+                    message =>
+                        message.sendByThisUser === false &&
+                        message.message.meeting_id === this.activeMeetingService.meetingId
+                ),
                 map(message => message.message)
             )
         ).subscribe(() => {

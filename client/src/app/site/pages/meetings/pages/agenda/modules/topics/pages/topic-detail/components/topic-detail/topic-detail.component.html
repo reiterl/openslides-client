@@ -31,9 +31,7 @@
         [ngClass]="editTopic ? 'os-form-card' : 'os-card'"
     >
         <ng-container *ngIf="!editTopic && topic">
-            <div>
-                <h1>{{ topic.getListTitle() }}</h1>
-            </div>
+            <os-projectable-title [model]="topic"></os-projectable-title>
             <div>
                 <span *ngIf="topic.text">
                     <!-- Render topic text as HTML -->
@@ -127,6 +125,12 @@
 
 <mat-menu #topicExtraMenu="matMenu">
     <ng-template matMenuContent>
+        <!-- PDF -->
+        <button mat-menu-item (click)="onDownloadPdf()">
+            <mat-icon>picture_as_pdf</mat-icon>
+            <span>{{ 'PDF' | translate }}</span>
+        </button>
+
         <os-projector-button [object]="topic" [menuItem]="true"></os-projector-button>
         <os-speaker-button [object]="topic" [menuItem]="true"></os-speaker-button>
         <div *osPerms="permission.agendaItemCanManage">

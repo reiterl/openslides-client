@@ -15,6 +15,7 @@ import { ChoiceService } from 'src/app/ui/modules/choice-dialog';
 import { PromptService } from 'src/app/ui/modules/prompt-dialog';
 
 import { ViewTopic } from '../../../../view-models';
+import { TopicPollPdfService } from '../../services/topic-poll-pdf.service/topic-poll-pdf.service';
 
 @Component({
     selector: `os-topic-poll`,
@@ -75,6 +76,7 @@ export class TopicPollComponent extends BasePollComponent<ViewTopic> implements 
         private operator: OperatorService,
         private votingService: VotingService,
         votingPrivacyDialog: VotingPrivacyWarningDialogService,
+        private pdfService: TopicPollPdfService,
         votingCryptoInfoDialog: VotingCryptographyInfoDialogService,
         dialog: PollDialogService
     ) {
@@ -106,6 +108,10 @@ export class TopicPollComponent extends BasePollComponent<ViewTopic> implements 
             console.error(e);
             this.raiseError(e);
         }
+    }
+
+    public downloadPdf(): void {
+        this.pdfService.printBallots(this.poll);
     }
 
     public getDetailLink(): string {

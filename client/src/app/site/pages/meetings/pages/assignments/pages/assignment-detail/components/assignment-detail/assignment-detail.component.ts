@@ -158,7 +158,7 @@ export class AssignmentDetailComponent extends BaseMeetingComponent implements O
             title: [``, Validators.required],
             description: [``],
             default_poll_description: [``],
-            open_posts: [1, [Validators.required, Validators.min(1)]],
+            open_posts: [1, [Validators.min(0)]],
             agenda_create: [``],
             agenda_parent_id: [],
             agenda_type: [``],
@@ -441,5 +441,9 @@ export class AssignmentDetailComponent extends BaseMeetingComponent implements O
                 ...this.assignmentPollService.getDefaultPollData(this.assignment)
             } as PollDialogData;
         }
+    }
+
+    public goToHistory(): void {
+        this.router.navigate([this.activeMeetingId!, `history`], { queryParams: { fqid: this.assignment.fqid } });
     }
 }
